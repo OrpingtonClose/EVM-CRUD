@@ -108,7 +108,9 @@ contract LineItems {
         string memory L_COMMENT) {
         require(lineItemSet.exists(key), "Can't get a widget that doesn't exist.");
         RecordStruct storage w = lineItems[key];
-        return(w.name, w.delux, w.price);
+        return(w.L_ORDERKEY, w.L_PARTKEY, w.L_SUPPKEY, w.L_LINENUMBER, w.L_QUANTITY, w.L_EXTENDEDPRICE,
+               w.L_DISCOUNT, w.L_TAX, w.L_RETURNFLAG, w.L_LINESTATUS, w.L_SHIPDATE, w.L_COMMITDATE,
+               w.L_RECEIPTDATE,w.L_SHIPINSTRUCT,w.L_SHIPMODE,w.L_COMMENT);
     }
 
     function getWidgetCount() public view returns(uint count) {
