@@ -1,18 +1,16 @@
 var { Web3 } = require('web3');
 
-var web3 = new Web3('http://localhost:8545')
+var web3 = new Web3('http://localhost:8545');
 
 var contractAddress = '0x702fdAbcF90717D94AA6Ef660ba852909f72466f';
 var privateKey = '0x000000000000000000000000000000000000000000000000000000000000002a';
 var contract = new web3.eth.Contract([{"inputs":[{"internalType":"uint256","name":"N_NATIONKEY","type":"uint256"},{"internalType":"string","name":"N_NAME","type":"string"},{"internalType":"uint256","name":"N_REGIONKEY","type":"uint256"},{"internalType":"string","name":"N_COMMENT","type":"string"}],"name":"newNation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"N_NATIONKEY","type":"uint256"}],"name":"remWidget","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"N_NATIONKEY","type":"uint256"},{"internalType":"string","name":"N_NAME","type":"string"},{"internalType":"uint256","name":"N_REGIONKEY","type":"uint256"},{"internalType":"string","name":"N_COMMENT","type":"string"}],"name":"updateWidget","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getCount","outputs":[{"internalType":"uint256","name":"count","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"N_NATIONKEY","type":"uint256"}],"name":"getWidget","outputs":[{"internalType":"string","name":"N_NAME","type":"string"},{"internalType":"uint256","name":"N_REGIONKEY","type":"uint256"},{"internalType":"string","name":"N_COMMENT","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"index","type":"uint256"}],"name":"getWidgetAtIndex","outputs":[{"internalType":"uint256","name":"key","type":"uint256"}],"stateMutability":"view","type":"function"}]
                                       ,contractAddress );
 
-// Account setup
 var account = web3.eth.accounts.privateKeyToAccount('0x000000000000000000000000000000000000000000000000000000000000002a');
 web3.eth.accounts.wallet.add(account);
 var fromAddress = account.address;
 
-// Function to send a transaction
 async function sendTransaction(data) {
   const nonce = await web3.eth.getTransactionCount(fromAddress);
   const gasPrice = await web3.eth.getGasPrice();
@@ -68,6 +66,36 @@ const dataPoints = [
   [24, 'UNITED STATES', 1, 'y final packages. slow foxes cajole quickly. quickly silent platelets breach ironic accounts. unusual pinto be'],
 ];
 
+function generateRandomWord() {
+  const characters = 'abcdefghijklmnopqrstuvwxyz';
+  const length = Math.floor(Math.random() * 8) + 1;
+  let word = '';
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    word += characters[randomIndex];
+  }
+
+  return word;
+}
+
+// Generate random sentence
+function generateRandomSentence() {
+  const words = [];
+
+  const wordCount = Math.floor(Math.random() * 10) + 1;
+  for (let i = 0; i < wordCount; i++) {
+    words.push(generateRandomWord());
+  }
+
+  return words.join(' ');
+}
+
+// Generate random number
+function generateRandomNumber(max) {
+  return Math.floor(Math.random() * max);
+}
+
 async function main() {
   for (const data of dataPoints) {
     try {
@@ -79,4 +107,26 @@ async function main() {
   }
 }
 
-main();
+//main();
+
+async function main1() {
+  var i = 30
+  while (true) {
+    try {
+      const N_NATIONKEY = i++;
+      const N_NAME = generateRandomWord().toUpperCase();
+      const N_REGIONKEY = generateRandomNumber(5);
+      const N_COMMENT = generateRandomSentence();
+      
+      //var reeee = await fillNewNationData(i++, generateRandomWord().toUpperCase(), generateRandomNumber(5), generateRandomSentence());
+      const receipt = await fillNewNationData(N_NATIONKEY, N_NAME, N_REGIONKEY, N_COMMENT);
+      console.log(`Transaction receipt for test nation ${N_NATIONKEY}:${N_NAME}`, receipt);
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    console.log(`=====================${i}==========================`)
+  }
+}
+
+main1()
