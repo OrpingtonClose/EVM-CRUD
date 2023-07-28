@@ -90,9 +90,12 @@ geth attach /home/orpington/data/geth.ipc #--exec admin.nodeInfo.enode /home/orp
 #admin.addPeer("enode://7d5a89459b3c7f3d5a9db53925f245f063d3240b5ce838b0fc2f461822260361d0636d132e81644076ab016cf812cb455b0172606851083b7358d7cd12ab9c71@5.161.220.126:30308")
 exit
 
+eth.sendTransaction({to: '0xff74cbcd6cea25dea8292f85e53a853709f4d490',from: eth.accounts[0],value: 10});
+personal.unlockAccount(eth.accounts[0], "abc")
+eth.sendTransaction({to: '0xff74cbcd6cea25dea8292f85e53a853709f4d490',from: eth.accounts[0],value: 10});
+eth.getBalance("0xff74cbcd6cea25dea8292f85e53a853709f4d490")
 
-
-
+#geth --unlock 0xff74cbcd6cea25dea8292f85e53a853709f4d491 --mine
 
 # cat <<EOF > gethnode1.service #/etc/systemd/system/myexecuteable.service
 # [Unit]
