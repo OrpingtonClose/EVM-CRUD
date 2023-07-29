@@ -1,135 +1,102 @@
-#https://github.com/ethereum/go-ethereum/issues/21631
+#https://coinsbench.com/create-a-private-ethereum-blockchain-network-829be72658a5
 
-NODENAME=node-two
-SSHPORT=2223
+NODENAME=node-done
+SSHPORT=2222
 
 vboxmanage import ~/Documents/eth-1.ova --vsys 0 --vmname $NODENAME
 VBoxManage modifyvm "$NODENAME" --natpf1 "guestssh,tcp,,$SSHPORT,,22"
-VBoxManage startvm $NODENAME
+VBoxManage startvm $NODENAME --type headless
 
 ssh -p $SSHPORT orpington@127.0.0.1
 
 sudo su
 
 mkdir data
-wget https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.24-972007a5.tar.gz
-tar -xvf geth-linux-amd64-1.10.24-972007a5.tar.gz
-mv geth-linux-amd64-1.10.24-972007a5/geth geth
+#wget https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.10.24-972007a5.tar.gz
+wget https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.10.24-972007a5.tar.gz
+tar -xvf geth-alltools-linux-amd64-1.10.24-972007a5.tar.gz
+mv geth-alltools-linux-amd64-1.10.24-972007a5/geth geth
 chmod 777 geth
 mv geth /usr/bin/geth
 
-#sudo add-apt-repository -y ppa:ethereum/ethereum
-#sudo apt-get install ethereum -y
-
-#https://geth.ethereum.org/docs/fundamentals/private-network
-PASS=abc
-NETWORKID=12345
-yes $PASS | geth account new --datadir data &> key.txt
-ADDRESS=$(grep -oP '(?<=0x).*' key.txt)
+mkdir node1
+#mkdir node2
+#mkdir node3
+# Node1
+echo "efg" > node1/password.txt
+geth --datadir node1 account new --password node1/password.txt &> node1/key.txt
+ADDRESS=$(grep -oP '(?<=0x).*' node1/key.txt)
 echo 0x$ADDRESS
-#EXTRADATA=$(echo "$(printf '0%.0s' {1..32})$ADDRESS$(printf '0%.0s' {1..65})")
-EXTRADATA=0000000000000000000000000000000000000000000000000000000000000000${ADDRESS}0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+# CREATES AN ACCOUNT INSIDE node1
+#0x68Eb359f50CdBC5D930eCA48b45FcACa4C4e5f4E
+
+# Node2
+# echo "efg" > node2/password.txt
+# geth --datadir node2 account new --password node2/password.txt  &> node2/key.txt
+# ADDRESS=$(grep -oP '(?<=0x).*' key.txt)
+# echo 0x$ADDRESS
+# CREATES AN ACCOUNT INSIDE node1
+#0x9ef071aA9c3DCa7127aDE83D4BBC2f205A06EE14
+
+# Node3
+# echo "xyz" > node3/password.txt
+# geth --datadir node3 account new --password node3/password.txt &> node3/key.txt
+# ADDRESS=$(grep -oP '(?<=0x).*' key.txt)
+# echo 0x$ADDRESS
+# CREATES AN ACCOUNT INSIDE node1
+#0x503b83a1A56765008934e8F2081cdF1193b5793a
 cat <<EOF > genesis.json
 {
   "config": {
-    "chainId": $NETWORKID,
+    "chainId": 50912,
     "homesteadBlock": 0,
     "eip150Block": 0,
+    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "eip155Block": 0,
     "eip158Block": 0,
     "byzantiumBlock": 0,
     "constantinopleBlock": 0,
     "petersburgBlock": 0,
     "istanbulBlock": 0,
-    "berlinBlock": 0,
     "clique": {
-      "period": 5,
+      "period": 15,
       "epoch": 30000
     }
   },
-  "difficulty": "1",
-  "gasLimit": "8000000",
-  "extradata": "0x$EXTRADATA",
+  "nonce": "0x0",
+  "timestamp": "0x64c52e3a",
+  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000${ADDRESS}0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "gasLimit": "0x47b760",
+  "difficulty": "0x1",
+  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "coinbase": "0x0000000000000000000000000000000000000000",
   "alloc": {
-    "$ADDRESS": { "balance": "100000000000000000000" }
-  }
+    "$$ADDRESS": {
+      "balance": "0xf00000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "number": "0x0",
+  "gasUsed": "0x0",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "baseFeePerGas": null
 }
 EOF
+cp genesis.json node1
+# cp genesis.json node2
+# cp genesis.json node3
 
-geth init --datadir data genesis.json
+geth --datadir node1/ init node1/genesis.json
+# geth --datadir node2/ init node2/genesis.json
+# geth --datadir node3/ init node3/genesis.json
 
-#Setting Up Networking 
-INTERFACE=$(ip route list | grep default | awk '{print $5}')
-IP=$(ifconfig | grep -A 1 $INTERFACE | grep inet | awk '{print $2}')
-echo $INTERFACE $IP
-SYSFILE=eth-node
-
-cat <<EOF > $SYSFILE.service #/etc/systemd/system/myexecuteable.service
-[Unit]
-Description=Ethereum go client
-[Service]
-User=root
-Type=simple
-WorkingDirectory=/home/orpington
-ExecStart=/usr/bin/geth --datadir data --networkid $NETWORKID --ipcpath /home/orpington/data/geth.ipc
-Restart=on-failure
-RestartSec=5
-[Install]
-WantedBy=default.target
-EOF
-
-#/etc/systemd/system/gethboot.service
-sudo mv $SYSFILE.service /etc/systemd/system/
-sudo systemctl enable $SYSFILE
-sudo systemctl start $SYSFILE
-#journalctl -f -u $SYSFILE
-#nmap 127.0.0.1
-
-geth attach /home/orpington/data/geth.ipc #--exec admin.nodeInfo.enode /home/orpington/data/geth.ipc > ~/enr.txt
-#geth attach --exec admin.nodeInfo.enode /home/orpington/data/geth.ipc
-#admin.addPeer("enode://7d5a89459b3c7f3d5a9db53925f245f063d3240b5ce838b0fc2f461822260361d0636d132e81644076ab016cf812cb455b0172606851083b7358d7cd12ab9c71@5.161.220.126:30308")
-exit
-
-eth.sendTransaction({to: '0xff74cbcd6cea25dea8292f85e53a853709f4d490',from: eth.accounts[0],value: 10});
-personal.unlockAccount(eth.accounts[0], "abc")
-eth.sendTransaction({to: '0xff74cbcd6cea25dea8292f85e53a853709f4d490',from: eth.accounts[0],value: 10});
-eth.getBalance("0xff74cbcd6cea25dea8292f85e53a853709f4d490")
-
-#geth --unlock 0xff74cbcd6cea25dea8292f85e53a853709f4d491 --mine
-
-# cat <<EOF > gethnode1.service #/etc/systemd/system/myexecuteable.service
-# [Unit]
-# Description=Ethereum go client
-# [Service]
-# User=orpington
-# Type=simple
-# WorkingDirectory=/home/orpington
-# ExecStart=/usr/bin/geth --datadir data --networkid $NETWORKID --ipcpath /home/orpington/data/geth.ipc
-# Restart=on-failure
-# RestartSec=5
-# [Install]
-# WantedBy=default.target
-# EOF
-
-# sudo mv gethnode1.service /etc/systemd/system/
-# sudo systemctl enable gethnode1
-# sudo systemctl start gethnode1
-# journalctl -u gethnode1 -f
-
-# exit
-
-# scp -P 2222 orpington@127.0.0.1:/home/orpington/{genesis.json,enr.txt} .
-
-# vboxmanage import ~/Documents/eth-1.ova --vsys 0 --vmname node1
-# VBoxManage modifyvm "node1" --natpf1 "guestssh,tcp,,2223,,22"
-# VBoxManage startvm node1
-
-# scp -P 2223 {genesis.json,enr.txt} orpington@127.0.0.1:/home/orpington/
-
-# ssh -p 2223 orpington@127.0.0.1
-
-# mkdir data
-# sudo add-apt-repository -y ppa:ethereum/ethereum
-# sudo apt-get install ethereum -y
-
-
+#geth --datadir "node1" --port "30311" --http --http.addr "127.0.0.1" --http.port "8501" --http.api "personal,eth,net,web3,txpool,miner" --networkid 50912 --miner.gasprice "0" --allow-insecure-unlock --unlock "0xDD05bcAeB1d99f831fc57C9afe52445C67a2b7E7" --password node1/password.txt --mine
+#enode://9a785098dcecc6a25085d7aded9ff4d92220c8bc92abb7e36d0bfbe861abe94199867d1ac490d5d4a6014084fcd35777462c338c744330609a0baf8d8ac8133f@127.0.0.1:30311
+geth --datadir node1 --port "30311" --http --http.addr "127.0.0.1" --http.port "8501" --http.api "personal,eth,net,web3,txpool,miner" --networkid 50912 --miner.gasprice "0" --allow-insecure-unlock --unlock "0x$ADDRESS" --password node1/password.txt --mine
+#doesnt work
+#geth --datadir "node3" --port "30313" --http --http.addr "127.0.0.1" --http.port "8503" --http.api "personal,eth,net,web3,txpool,miner" --networkid 50912 --miner.gasprice "0" --allow-insecure-unlock --unlock "0x503b83a1A56765008934e8F2081cdF1193b5793a" --password node1/password.txt --mine
+#
+geth attach --exec 'eth.sendTransaction({to: "0xdd05bcaeb1d99f831fc57c9afe52445c67a2b7e7",from: "0x$ADDRESS",value: 1})' node1/geth.ipc
+geth attach --exec 'eth.getBlock("latest")' node1/geth.ipc
+geth attach --exec 'eth.getBalance("0x$ADDRESS")' node1/geth.ipc
+#err="signed recently, must wait for others"
+#eth.sendTransaction({to: '0x9ef071aa9c3dca7127ade83d4bbc2f205a06ee14',from: '0xDD05bcAeB1d99f831fc57C9afe52445C67a2b7E7',value: 10});
