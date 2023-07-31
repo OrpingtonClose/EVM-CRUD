@@ -122,3 +122,5 @@ geth attach --exec "eth.getBalance('0x$ADDRESS')" node1/geth.ipc
 geth attach --exec "eth.getBalance('0xdd05bcaeb1d99f831fc57c9afe52445c67a2b7e7')" node1/geth.ipc
 #err="signed recently, must wait for others"
 #eth.sendTransaction({to: '0x9ef071aa9c3dca7127ade83d4bbc2f205a06ee14',from: '0xDD05bcAeB1d99f831fc57C9afe52445C67a2b7E7',value: 10});
+#CREATE ANOTHER NODE AND CONNECT TO THIS
+#CREATE KEY WITH FUNDS TO MAKE TRANSACTIONS
