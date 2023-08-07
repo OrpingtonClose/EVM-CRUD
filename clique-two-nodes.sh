@@ -1,6 +1,8 @@
 #https://coinsbench.com/create-a-private-ethereum-blockchain-network-829be72658a5
 
-
+#sudo tshark -f "tcp port 30305" -i any
+#https://www.wireshark.org/docs/wsug_html_chunked/AppToolstshark.html
+#https://stackoverflow.com/questions/10361174/how-to-capture-package-at-a-specific-port-on-any-interface-using-tshark
 
 #VBoxManage natnetwork add --netname NATNetwork101 --network "192.168.10.0/24" --enable
 #VBoxManage natnetwork start --netname NATNetwork101
