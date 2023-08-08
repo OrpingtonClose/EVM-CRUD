@@ -4,6 +4,12 @@
 #https://www.wireshark.org/docs/wsug_html_chunked/AppToolstshark.html
 #https://stackoverflow.com/questions/10361174/how-to-capture-package-at-a-specific-port-on-any-interface-using-tshark
 
+#tracing network calls with strace on the basis of PID
+#https://stackoverflow.com/questions/7842533/how-can-i-capture-network-packets-per-pid#55070731
+#strace -f -e trace=network -s 10000 <PROCESS WITH ARGUMENTS>;
+#strace -f -e trace=network -s 10000 -p <PID>;
+
+
 #VBoxManage natnetwork add --netname NATNetwork101 --network "192.168.10.0/24" --enable
 #VBoxManage natnetwork start --netname NATNetwork101
 #VBoxManage list natnetworks
